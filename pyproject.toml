@@ -1,7 +1,7 @@
 [project]
 name = "orgjournal-mcp"
 version = "0.1.0"
-description = "Add your description here"
+description = "MCP server for accessing Org-mode journal files"
 readme = "README.md"
 authors = [
     { name = "u-yuta", email = "u-yuta@users.noreply.github.com" }
@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.14"
 dependencies = [
     "orgparse>=0.4.20251020",
+    "mcp>=1.1.2",
 ]
 
 [project.scripts]
