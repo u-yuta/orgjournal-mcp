@@ -27,6 +27,17 @@
 - README.md にテスト実行方法を追加
 - **テスト結果**: 52個のテストが全て成功、カバレッジ 95%
 
+✅ **Phase 3.1: タグフィルタリング機能完了 (2026-01-04)**
+- `filter_entries_by_tags` ヘルパー関数を `converter.py` に追加
+- `get_entries_by_tag` ツールを `server.py` に実装
+- デフォルトで "chore" タグを除外する機能
+- include/exclude タグの組み合わせをサポート
+- ユニットテストの追加:
+  - `test_converter.py`: 9個のテスト (タグフィルタリングロジック)
+  - `test_server.py`: 8個のテスト (get_entries_by_tag ツール + 統合テスト)
+- README.md にツールの詳細説明を追加
+- **テスト結果**: 69個のテストが全て成功、カバレッジ 95%
+
 ---
 
 ## 次のステップ
@@ -58,39 +69,6 @@ uv run orgjournal-mcp get --last-days 30 -o output.json
 
 
 ### Phase 3: 機能拡張
-
-#### 3.1 タグフィルタリング機能
-特定のタグでフィルタリング、または除外できるようにする。
-
-**新しいツール:**
-- `get_entries_by_tag`: タグでフィルタリング・除外
-
-**機能:**
-- 指定したタグを含むエントリーのみ取得（include）
-- 指定したタグを含むエントリーを除外（exclude）
-- デフォルトで "chore" タグを除外
-
-**パラメータ:**
-- `tags`: 含めるタグのリスト（オプション）
-- `exclude_tags`: 除外するタグのリスト（デフォルト: `["chore"]`）
-- `last_days`: 対象期間（オプション）
-
-**例:**
-```python
-# "work" タグのエントリーのみ取得（デフォルトで "chore" は除外）
-get_entries_by_tag(tags=["work"], last_days=30)
-
-# "meeting" と "review" タグのエントリーを除外
-get_entries_by_tag(exclude_tags=["meeting", "review"], last_days=30)
-
-# デフォルトで "chore" が除外される
-# "chore" を含めたい場合は exclude_tags を空リストに指定
-get_entries_by_tag(exclude_tags=[], last_days=30)
-
-# include と exclude の組み合わせ
-# "work" タグを含み、かつ "chore" と "meeting" を除外
-get_entries_by_tag(tags=["work"], exclude_tags=["chore", "meeting"], last_days=30)
-```
 
 #### 3.2 統計情報の提供
 ジャーナルの統計情報を取得できるようにする。
@@ -176,3 +154,4 @@ get_entries_by_tag(tags=["work"], exclude_tags=["chore", "meeting"], last_days=3
 
 - **2026-01-04**: 初期実装完了、MCP サーバーとして動作確認済み
 - **2026-01-04**: Phase 2 完了 - テストの追加 (52テスト、カバレッジ95%)
+- **2026-01-04**: Phase 3.1 完了 - タグフィルタリング機能 (69テスト、カバレッジ95%)

@@ -14,7 +14,8 @@ Read monthly Org-mode journal files and make them searchable from LLM (Claude, e
 
 1. **get_journal_entries** - Get journal entries by date range
 2. **search_journal** - Search journal by keywords
-3. **get_recent_entries** - Get recent N days entries
+3. **get_recent_entries** - Get recent N days entries (excludes "chore" tag by default)
+4. **get_entries_by_tag** - Filter journal entries by tags (include/exclude)
 
 ## Installation
 
@@ -97,6 +98,52 @@ To change default journal directory, edit `src/orgjournal_mcp/config.py`:
 DEFAULT_JOURNAL_DIR = Path.home() / "Documents" / "org" / "your-journal-dir"
 ```
 
+## Tool Details
+
+### get_recent_entries
+
+Get entries from the last N days. **By default, excludes entries with "chore" tag.**
+
+**Parameters:**
+- `days` (optional, default: 7): Number of days to retrieve
+- `journal_dir` (optional): Custom journal directory path
+
+**Examples:**
+```python
+# Get last 7 days entries (excluding "chore" tag)
+get_recent_entries()
+
+# Get last 30 days entries (excluding "chore" tag)
+get_recent_entries(days=30)
+```
+
+### get_entries_by_tag
+
+Filter journal entries by tags with include/exclude functionality.
+
+**Parameters:**
+- `tags` (optional): List of tags to include
+- `exclude_tags` (optional, default: `None`): List of tags to exclude
+- `last_days` (optional): Get entries from the last N days
+- `since` (optional): Start date (YYYY-MM-DD)
+- `before` (optional): End date (YYYY-MM-DD)
+- `journal_dir` (optional): Custom journal directory path
+
+**Examples:**
+```python
+# Get "work" tagged entries
+get_entries_by_tag(tags=["work"], last_days=30)
+
+# Exclude "meeting" and "review" tags
+get_entries_by_tag(exclude_tags=["meeting", "review"], last_days=30)
+
+# Exclude "chore" tag explicitly
+get_entries_by_tag(exclude_tags=["chore"], last_days=30)
+
+# Combine include and exclude
+get_entries_by_tag(tags=["work"], exclude_tags=["chore", "meeting"])
+```
+
 ## Development
 
 ```bash
@@ -105,6 +152,9 @@ uv sync --all-groups
 
 # Run tests
 uv run pytest
+
+# Run tests with coverage
+uv run pytest --cov
 ```
 
 ## License

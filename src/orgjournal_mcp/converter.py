@@ -225,3 +225,44 @@ def search_entries(
             results.append(entry)
 
     return results
+
+
+def filter_entries_by_tags(
+    entries: List[Dict[str, Any]],
+    include_tags: Optional[List[str]] = None,
+    exclude_tags: Optional[List[str]] = None
+) -> List[Dict[str, Any]]:
+    """エントリーをタグでフィルタリング
+
+    Args:
+        entries: フィルタリング対象のエントリーリスト
+        include_tags: 含めるタグのリスト（Noneの場合は全て含める）
+        exclude_tags: 除外するタグのリスト（Noneの場合は除外しない）
+
+    Returns:
+        フィルタリングされたエントリーのリスト
+    """
+    if not entries:
+        return entries
+
+    results = []
+
+    for entry in entries:
+        entry_tags = entry.get('tags', [])
+
+        # exclude_tags のチェック（優先）
+        if exclude_tags:
+            # 除外タグが1つでも含まれている場合はスキップ
+            if any(tag in exclude_tags for tag in entry_tags):
+                continue
+
+        # include_tags のチェック
+        if include_tags is not None:
+            # 含めるタグが1つでも含まれている場合のみ追加
+            if any(tag in include_tags for tag in entry_tags):
+                results.append(entry)
+        else:
+            # include_tags が指定されていない場合は、除外されなかったエントリーを全て追加
+            results.append(entry)
+
+    return results

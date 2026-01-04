@@ -6,7 +6,7 @@ from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
-from .converter import convert_to_json_schema, search_entries
+from .converter import convert_to_json_schema, search_entries, filter_entries_by_tags
 from .config import DEFAULT_JOURNAL_DIR, DEFAULT_LAST_DAYS
 
 # FastMCP サーバーインスタンスを作成
@@ -137,17 +137,18 @@ def get_recent_entries(
 ) -> dict:
     """
     Get entries from the last N days (simplified version).
+    By default, excludes entries with "chore" tag.
 
     Args:
         days: Number of days to retrieve (default: 7 days)
         journal_dir: Path to the journal directory (defaults to default directory if omitted)
 
     Returns:
-        Dictionary containing a list of journal entries
+        Dictionary containing a list of journal entries (excluding "chore" tag by default)
 
     Examples:
-        - get_recent_entries()  # Last 7 days
-        - get_recent_entries(days=30)  # Last 30 days
+        - get_recent_entries()  # Last 7 days, excluding "chore" tag
+        - get_recent_entries(days=30)  # Last 30 days, excluding "chore" tag
     """
     # ジャーナルディレクトリ
     journal_path = Path(journal_dir) if journal_dir else DEFAULT_JOURNAL_DIR
@@ -158,10 +159,81 @@ def get_recent_entries(
         last_days=days
     )
 
+    # "chore" タグを除外
+    filtered_entries = filter_entries_by_tags(
+        entries=result["entries"],
+        include_tags=None,
+        exclude_tags=["chore"]
+    )
+
     return {
-        "entries": result["entries"],
-        "count": len(result["entries"]),
+        "entries": filtered_entries,
+        "count": len(filtered_entries),
         "days": days
+    }
+
+
+@mcp.tool()
+def get_entries_by_tag(
+    tags: Optional[list[str]] = None,
+    exclude_tags: Optional[list[str]] = None,
+    last_days: Optional[int] = None,
+    since: Optional[str] = None,
+    before: Optional[str] = None,
+    journal_dir: Optional[str] = None
+) -> dict:
+    """
+    Filter journal entries by tags.
+
+    Args:
+        tags: List of tags to include (optional, if not specified, all entries are included)
+        exclude_tags: List of tags to exclude (optional, default: None)
+        last_days: Get entries from the last N days (e.g., 7, 30, 90)
+        since: Get entries from this date onwards (YYYY-MM-DD format)
+        before: Get entries before this date (YYYY-MM-DD format)
+        journal_dir: Path to the journal directory (defaults to default directory if omitted)
+
+    Returns:
+        Dictionary containing a list of filtered journal entries
+
+    Examples:
+        - get_entries_by_tag(tags=["work"], last_days=30)  # Get entries with "work" tag
+        - get_entries_by_tag(exclude_tags=["meeting", "review"], last_days=30)  # Exclude "meeting" and "review" tags
+        - get_entries_by_tag(exclude_tags=["chore"], last_days=30)  # Exclude "chore" tags
+        - get_entries_by_tag(tags=["work"], exclude_tags=["chore", "meeting"])  # Include "work" and exclude "chore" and "meeting"
+    """
+    # 日付文字列をdatetimeオブジェクトに変換
+    since_dt = datetime.fromisoformat(since) if since else None
+    before_dt = datetime.fromisoformat(before) if before else None
+
+    # ジャーナルディレクトリ
+    journal_path = Path(journal_dir) if journal_dir else DEFAULT_JOURNAL_DIR
+
+    # エントリーを取得
+    result = convert_to_json_schema(
+        journal_dir=journal_path,
+        last_days=last_days,
+        since=since_dt,
+        before=before_dt
+    )
+
+    # タグでフィルタリング
+    filtered_entries = filter_entries_by_tags(
+        entries=result["entries"],
+        include_tags=tags,
+        exclude_tags=exclude_tags
+    )
+
+    return {
+        "entries": filtered_entries,
+        "count": len(filtered_entries),
+        "filter": {
+            "include_tags": tags,
+            "exclude_tags": exclude_tags,
+            "last_days": last_days,
+            "since": since,
+            "before": before
+        }
     }
 
 

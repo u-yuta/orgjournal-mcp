@@ -16,6 +16,7 @@ from orgjournal_mcp.converter import (
     process_org_file,
     convert_to_json_schema,
     search_entries,
+    filter_entries_by_tags,
 )
 
 
@@ -295,3 +296,132 @@ class TestSearchEntries:
         """結果なしの検索"""
         results = search_entries(sample_entries_data, "nonexistent_keyword_xyz")
         assert results == []
+
+
+class TestFilterEntriesByTags:
+    """タグフィルタリングのテスト"""
+
+    @pytest.fixture
+    def sample_tagged_entries(self) -> List[Dict]:
+        """タグ付きサンプルエントリー"""
+        return [
+            {
+                "date": "2025-01-01",
+                "timestamp": "2025-01-01T09:00:00",
+                "title": "Work task",
+                "body": "Some work",
+                "tags": ["work"]
+            },
+            {
+                "date": "2025-01-02",
+                "timestamp": "2025-01-02T10:00:00",
+                "title": "Chore task",
+                "body": "Daily chore",
+                "tags": ["chore"]
+            },
+            {
+                "date": "2025-01-03",
+                "timestamp": "2025-01-03T11:00:00",
+                "title": "Meeting",
+                "body": "Team meeting",
+                "tags": ["work", "meeting"]
+            },
+            {
+                "date": "2025-01-04",
+                "timestamp": "2025-01-04T12:00:00",
+                "title": "Personal note",
+                "body": "Personal stuff",
+                "tags": ["personal"]
+            },
+            {
+                "date": "2025-01-05",
+                "timestamp": "2025-01-05T13:00:00",
+                "title": "Review task",
+                "body": "Code review",
+                "tags": ["work", "review"]
+            }
+        ]
+
+    def test_include_single_tag(self, sample_tagged_entries: List[Dict]):
+        """単一タグでのフィルタリング（include）"""
+        results = filter_entries_by_tags(
+            sample_tagged_entries,
+            include_tags=["work"]
+        )
+        assert len(results) == 3
+        assert all(any(tag == "work" for tag in r["tags"]) for r in results)
+
+    def test_include_multiple_tags(self, sample_tagged_entries: List[Dict]):
+        """複数タグでのフィルタリング（include）"""
+        results = filter_entries_by_tags(
+            sample_tagged_entries,
+            include_tags=["work", "personal"]
+        )
+        assert len(results) == 4
+        assert all(any(tag in ["work", "personal"] for tag in r["tags"]) for r in results)
+
+    def test_exclude_single_tag(self, sample_tagged_entries: List[Dict]):
+        """単一タグの除外"""
+        results = filter_entries_by_tags(
+            sample_tagged_entries,
+            exclude_tags=["chore"]
+        )
+        assert len(results) == 4
+        assert all("chore" not in r["tags"] for r in results)
+
+    def test_exclude_multiple_tags(self, sample_tagged_entries: List[Dict]):
+        """複数タグの除外"""
+        results = filter_entries_by_tags(
+            sample_tagged_entries,
+            exclude_tags=["chore", "meeting"]
+        )
+        assert len(results) == 3
+        assert all("chore" not in r["tags"] and "meeting" not in r["tags"] for r in results)
+
+    def test_include_and_exclude_combined(self, sample_tagged_entries: List[Dict]):
+        """includeとexcludeの組み合わせ"""
+        results = filter_entries_by_tags(
+            sample_tagged_entries,
+            include_tags=["work"],
+            exclude_tags=["meeting"]
+        )
+        assert len(results) == 2
+        assert all(any(tag == "work" for tag in r["tags"]) for r in results)
+        assert all("meeting" not in r["tags"] for r in results)
+
+    def test_no_filters(self, sample_tagged_entries: List[Dict]):
+        """フィルターなし"""
+        results = filter_entries_by_tags(
+            sample_tagged_entries,
+            include_tags=None,
+            exclude_tags=None
+        )
+        assert len(results) == 5
+
+    def test_empty_entries(self):
+        """空のエントリーリスト"""
+        results = filter_entries_by_tags(
+            [],
+            include_tags=["work"],
+            exclude_tags=["chore"]
+        )
+        assert results == []
+
+    def test_exclude_takes_priority(self, sample_tagged_entries: List[Dict]):
+        """excludeが優先されることを確認"""
+        results = filter_entries_by_tags(
+            sample_tagged_entries,
+            include_tags=["work"],
+            exclude_tags=["work"]
+        )
+        # "work" タグがexcludeされているので、結果は0件
+        assert len(results) == 0
+
+    def test_empty_exclude_list(self, sample_tagged_entries: List[Dict]):
+        """空のexcludeリスト（何も除外しない）"""
+        results = filter_entries_by_tags(
+            sample_tagged_entries,
+            include_tags=None,
+            exclude_tags=[]
+        )
+        assert len(results) == 5

@@ -10,6 +10,7 @@ from orgjournal_mcp.server import (
     get_journal_entries,
     search_journal,
     get_recent_entries,
+    get_entries_by_tag,
 )
 
 
@@ -168,7 +169,7 @@ class TestGetRecentEntries:
     """get_recent_entries ツールのテスト"""
 
     def test_get_recent_default(self, fixtures_dir: Path):
-        """デフォルトパラメータでの取得"""
+        """デフォルトパラメータでの取得（choreタグを除外）"""
         result = get_recent_entries(journal_dir=str(fixtures_dir))
 
         assert "entries" in result
@@ -176,6 +177,10 @@ class TestGetRecentEntries:
         assert "days" in result
         assert result["days"] == 7  # デフォルト値
         assert result["count"] == len(result["entries"])
+
+        # "chore" タグが除外されていることを確認
+        for entry in result["entries"]:
+            assert "chore" not in entry["tags"]
 
     def test_get_recent_custom_days(self, fixtures_dir: Path):
         """カスタム日数での取得"""
@@ -185,6 +190,10 @@ class TestGetRecentEntries:
         )
 
         assert result["days"] == 30
+
+        # "chore" タグが除外されていることを確認
+        for entry in result["entries"]:
+            assert "chore" not in entry["tags"]
 
     def test_response_structure(self, fixtures_dir: Path):
         """レスポンス構造の確認"""
@@ -200,13 +209,144 @@ class TestGetRecentEntries:
             assert all(key in entry for key in required_keys)
 
 
+class TestGetEntriesByTag:
+    """get_entries_by_tag ツールのテスト"""
+
+    def test_get_entries_with_include_tag(self, fixtures_dir: Path):
+        """特定のタグを含むエントリーの取得"""
+        result = get_entries_by_tag(
+            tags=["work"],
+            last_days=365,
+            journal_dir=str(fixtures_dir)
+        )
+
+        assert "entries" in result
+        assert "count" in result
+        assert "filter" in result
+        assert result["filter"]["include_tags"] == ["work"]
+        assert result["count"] == len(result["entries"])
+
+        # 全てのエントリーに "work" タグが含まれていることを確認
+        for entry in result["entries"]:
+            assert "work" in entry["tags"]
+
+    def test_get_entries_with_exclude_tag(self, fixtures_dir: Path):
+        """特定のタグを除外したエントリーの取得"""
+        result = get_entries_by_tag(
+            exclude_tags=["meeting"],
+            last_days=365,
+            journal_dir=str(fixtures_dir)
+        )
+
+        assert "entries" in result
+        assert result["filter"]["exclude_tags"] == ["meeting"]
+
+        # 全てのエントリーに "meeting" タグが含まれていないことを確認
+        for entry in result["entries"]:
+            assert "meeting" not in entry["tags"]
+
+    def test_get_entries_default_no_exclude(self, fixtures_dir: Path):
+        """デフォルトでタグ除外がないことを確認"""
+        result = get_entries_by_tag(
+            last_days=365,
+            journal_dir=str(fixtures_dir)
+        )
+
+        assert result["filter"]["exclude_tags"] is None
+
+    def test_get_entries_include_and_exclude(self, fixtures_dir: Path):
+        """includeとexcludeの組み合わせ"""
+        result = get_entries_by_tag(
+            tags=["work"],
+            exclude_tags=["meeting"],
+            last_days=365,
+            journal_dir=str(fixtures_dir)
+        )
+
+        assert result["filter"]["include_tags"] == ["work"]
+        assert result["filter"]["exclude_tags"] == ["meeting"]
+
+        # 全てのエントリーに "work" タグが含まれ、"meeting" タグが含まれていないことを確認
+        for entry in result["entries"]:
+            assert "work" in entry["tags"]
+            assert "meeting" not in entry["tags"]
+
+    def test_get_entries_with_empty_exclude(self, fixtures_dir: Path):
+        """空のexclude_tagsで全てのタグを含める"""
+        result = get_entries_by_tag(
+            exclude_tags=[],
+            last_days=365,
+            journal_dir=str(fixtures_dir)
+        )
+
+        assert result["filter"]["exclude_tags"] == []
+
+        # 全てのエントリーが含まれる
+        all_entries = get_journal_entries(
+            last_days=365,
+            journal_dir=str(fixtures_dir)
+        )
+        assert result["count"] == all_entries["count"]
+
+    def test_get_entries_exclude_chore_explicitly(self, fixtures_dir: Path):
+        """明示的に "chore" タグを除外"""
+        result = get_entries_by_tag(
+            exclude_tags=["chore"],
+            last_days=365,
+            journal_dir=str(fixtures_dir)
+        )
+
+        assert result["filter"]["exclude_tags"] == ["chore"]
+
+        # 全てのエントリーに "chore" タグが含まれていないことを確認
+        for entry in result["entries"]:
+            assert "chore" not in entry["tags"]
+
+    def test_get_entries_with_date_range(self, fixtures_dir: Path):
+        """日付範囲指定付きのタグフィルタリング"""
+        result = get_entries_by_tag(
+            tags=["work"],
+            since="2025-01-01",
+            before="2025-01-10",
+            journal_dir=str(fixtures_dir)
+        )
+
+        assert "entries" in result
+        # 日付範囲内のエントリーのみが含まれていることを確認
+        for entry in result["entries"]:
+            entry_date = datetime.fromisoformat(entry["timestamp"])
+            assert datetime(2025, 1, 1) <= entry_date < datetime(2025, 1, 10)
+            assert "work" in entry["tags"]
+
+    def test_response_structure(self, fixtures_dir: Path):
+        """レスポンス構造の確認"""
+        result = get_entries_by_tag(
+            tags=["work"],
+            last_days=365,
+            journal_dir=str(fixtures_dir)
+        )
+
+        # トップレベルのキー確認
+        assert set(result.keys()) == {"entries", "count", "filter"}
+
+        # filter の構造確認
+        assert "include_tags" in result["filter"]
+        assert "exclude_tags" in result["filter"]
+        assert "last_days" in result["filter"]
+        assert "since" in result["filter"]
+        assert "before" in result["filter"]
+
+
 class TestIntegration:
     """統合テスト"""
 
     def test_multiple_tools_same_data(self, fixtures_dir: Path):
         """同じデータに対する複数ツールの整合性"""
-        # get_journal_entries と get_recent_entries の結果が一致するか
-        entries_result = get_journal_entries(
+        # get_journal_entries と get_recent_entries の結果を比較
+        # get_recent_entries は "chore" タグを除外するので、
+        # get_entries_by_tag で同じフィルターを適用して比較
+        entries_with_filter = get_entries_by_tag(
+            exclude_tags=["chore"],
             last_days=7,
             journal_dir=str(fixtures_dir)
         )
@@ -217,7 +357,7 @@ class TestIntegration:
         )
 
         # 同じエントリー数を返すはず
-        assert entries_result["count"] == recent_result["count"]
+        assert entries_with_filter["count"] == recent_result["count"]
 
     def test_search_subset_of_entries(self, fixtures_dir: Path):
         """検索結果は全エントリーのサブセット"""
@@ -234,3 +374,19 @@ class TestIntegration:
 
         # 検索結果は全エントリー以下のはず
         assert search_result["count"] <= all_entries["count"]
+
+    def test_tag_filter_subset_of_entries(self, fixtures_dir: Path):
+        """タグフィルター結果は全エントリーのサブセット"""
+        all_entries = get_journal_entries(
+            last_days=365,
+            journal_dir=str(fixtures_dir)
+        )
+
+        tag_result = get_entries_by_tag(
+            tags=["work"],
+            last_days=365,
+            journal_dir=str(fixtures_dir)
+        )
+
+        # タグフィルター結果は全エントリー以下のはず
+        assert tag_result["count"] <= all_entries["count"]
