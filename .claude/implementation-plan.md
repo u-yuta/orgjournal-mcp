@@ -60,15 +60,36 @@ uv run orgjournal-mcp get --last-days 30 -o output.json
 ### Phase 3: 機能拡張
 
 #### 3.1 タグフィルタリング機能
-特定のタグでフィルタリングできるようにする。
+特定のタグでフィルタリング、または除外できるようにする。
 
 **新しいツール:**
-- `get_entries_by_tag`: タグでフィルタリング
+- `get_entries_by_tag`: タグでフィルタリング・除外
+
+**機能:**
+- 指定したタグを含むエントリーのみ取得（include）
+- 指定したタグを含むエントリーを除外（exclude）
+- デフォルトで "chore" タグを除外
+
+**パラメータ:**
+- `tags`: 含めるタグのリスト（オプション）
+- `exclude_tags`: 除外するタグのリスト（デフォルト: `["chore"]`）
+- `last_days`: 対象期間（オプション）
 
 **例:**
 ```python
-# "work" タグのエントリーのみ取得
+# "work" タグのエントリーのみ取得（デフォルトで "chore" は除外）
 get_entries_by_tag(tags=["work"], last_days=30)
+
+# "meeting" と "review" タグのエントリーを除外
+get_entries_by_tag(exclude_tags=["meeting", "review"], last_days=30)
+
+# デフォルトで "chore" が除外される
+# "chore" を含めたい場合は exclude_tags を空リストに指定
+get_entries_by_tag(exclude_tags=[], last_days=30)
+
+# include と exclude の組み合わせ
+# "work" タグを含み、かつ "chore" と "meeting" を除外
+get_entries_by_tag(tags=["work"], exclude_tags=["chore", "meeting"], last_days=30)
 ```
 
 #### 3.2 統計情報の提供
