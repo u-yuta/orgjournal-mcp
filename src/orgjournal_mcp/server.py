@@ -21,21 +21,21 @@ def get_journal_entries(
     journal_dir: Optional[str] = None
 ) -> dict:
     """
-    日付範囲を指定してジャーナルエントリーを取得します。
+    Retrieve journal entries for a specified date range.
 
     Args:
-        last_days: 直近N日間のエントリーを取得（例: 7, 30, 90）
-        since: この日付以降のエントリーを取得（YYYY-MM-DD形式）
-        before: この日付より前のエントリーを取得（YYYY-MM-DD形式）
-        journal_dir: ジャーナルディレクトリのパス（省略時はデフォルト）
+        last_days: Get entries from the last N days (e.g., 7, 30, 90)
+        since: Get entries from this date onwards (YYYY-MM-DD format)
+        before: Get entries before this date (YYYY-MM-DD format)
+        journal_dir: Path to the journal directory (defaults to default directory if omitted)
 
     Returns:
-        ジャーナルエントリーのリストを含む辞書
+        Dictionary containing a list of journal entries
 
     Examples:
-        - get_journal_entries(last_days=7)  # 直近7日間
-        - get_journal_entries(since="2025-01-01")  # 2025年1月1日以降
-        - get_journal_entries(since="2025-01-01", before="2025-02-01")  # 2025年1月
+        - get_journal_entries(last_days=7)  # Last 7 days
+        - get_journal_entries(since="2025-01-01")  # From January 1, 2025 onwards
+        - get_journal_entries(since="2025-01-01", before="2025-02-01")  # January 2025
     """
     # 日付文字列をdatetimeオブジェクトに変換
     since_dt = datetime.fromisoformat(since) if since else None
@@ -75,24 +75,24 @@ def search_journal(
     journal_dir: Optional[str] = None
 ) -> dict:
     """
-    キーワードでジャーナルを検索します。
+    Search journals by keyword.
 
     Args:
-        query: 検索キーワード
-        last_days: 検索対象期間（直近N日間）
-        since: 検索対象期間の開始日（YYYY-MM-DD形式）
-        before: 検索対象期間の終了日（YYYY-MM-DD形式）
-        search_in_body: 本文を検索対象に含めるか
-        search_in_title: タイトルを検索対象に含めるか
-        search_in_tags: タグを検索対象に含めるか
-        journal_dir: ジャーナルディレクトリのパス（省略時はデフォルト）
+        query: Search keyword
+        last_days: Search period (last N days)
+        since: Start date of search period (YYYY-MM-DD format)
+        before: End date of search period (YYYY-MM-DD format)
+        search_in_body: Whether to include body in search
+        search_in_title: Whether to include title in search
+        search_in_tags: Whether to include tags in search
+        journal_dir: Path to the journal directory (defaults to default directory if omitted)
 
     Returns:
-        検索結果のエントリーリストを含む辞書
+        Dictionary containing list of search result entries
 
     Examples:
-        - search_journal("meeting", last_days=30)  # 直近30日間で"meeting"を検索
-        - search_journal("project", search_in_tags=True)  # タグで検索
+        - search_journal("meeting", last_days=30)  # Search for "meeting" in the last 30 days
+        - search_journal("project", search_in_tags=True)  # Search in tags
     """
     # 日付文字列をdatetimeオブジェクトに変換
     since_dt = datetime.fromisoformat(since) if since else None
@@ -136,18 +136,18 @@ def get_recent_entries(
     journal_dir: Optional[str] = None
 ) -> dict:
     """
-    直近N日間のエントリーを取得します（簡易版）。
+    Get entries from the last N days (simplified version).
 
     Args:
-        days: 取得する日数（デフォルト: 7日）
-        journal_dir: ジャーナルディレクトリのパス（省略時はデフォルト）
+        days: Number of days to retrieve (default: 7 days)
+        journal_dir: Path to the journal directory (defaults to default directory if omitted)
 
     Returns:
-        ジャーナルエントリーのリストを含む辞書
+        Dictionary containing a list of journal entries
 
     Examples:
-        - get_recent_entries()  # 直近7日間
-        - get_recent_entries(days=30)  # 直近30日間
+        - get_recent_entries()  # Last 7 days
+        - get_recent_entries(days=30)  # Last 30 days
     """
     # ジャーナルディレクトリ
     journal_path = Path(journal_dir) if journal_dir else DEFAULT_JOURNAL_DIR
