@@ -2,7 +2,7 @@
 
 ## 現在の状態
 
-✅ **完了済み (2026-01-04)**
+✅ **Phase 0: 初期実装完了 (2026-01-04)**
 - MCP サーバーの基本実装
 - 3つのツール実装:
   - `get_journal_entries`: 日付範囲指定でエントリー取得
@@ -14,6 +14,18 @@
 - MCP クライアントでの動作確認済み
 
 詳細: [.claude/completed/2026-01-04-initial-implementation.md](.claude/completed/2026-01-04-initial-implementation.md)
+
+✅ **Phase 2: テスト追加完了 (2026-01-04)**
+- テストフレームワークのセットアップ (pytest, pytest-cov, pytest-asyncio)
+- テストディレクトリ構造の作成 (tests/, tests/fixtures/)
+- テストフィクスチャファイルの作成 (サンプル Org ファイル 3つ)
+- ユニットテストの実装:
+  - `test_converter.py`: 37個のテスト (変換ロジック)
+  - `test_server.py`: 12個のテスト (MCP ツール)
+  - `test_config.py`: 7個のテスト (設定)
+- GitHub Actions CI 設定 (.github/workflows/test.yml)
+- README.md にテスト実行方法を追加
+- **テスト結果**: 52個のテストが全て成功、カバレッジ 95%
 
 ---
 
@@ -44,24 +56,6 @@ uv run orgjournal-mcp get --last-days 30 -o output.json
 
 ---
 
-### Phase 2: テストの追加
-
-**実装内容:**
-- `tests/` ディレクトリの作成
-- ユニットテスト:
-  - `test_converter.py`: 変換ロジックのテスト
-  - `test_server.py`: MCP ツールのテスト
-  - `test_config.py`: 設定のテスト
-- テストデータの準備（サンプル org ファイル）
-- CI/CD の設定（GitHub Actions）
-
-**使用するツール:**
-- pytest
-- pytest-asyncio (非同期テスト用)
-
-**優先度:** 中
-
----
 
 ### Phase 3: 機能拡張
 
@@ -160,3 +154,4 @@ get_entries_by_tag(tags=["work"], last_days=30)
 ## 変更履歴
 
 - **2026-01-04**: 初期実装完了、MCP サーバーとして動作確認済み
+- **2026-01-04**: Phase 2 完了 - テストの追加 (52テスト、カバレッジ95%)

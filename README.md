@@ -1,5 +1,7 @@
 # orgjournal-mcp
 
+![Tests](https://github.com/u-yuta/orgjournal-mcp/workflows/Tests/badge.svg)
+
 Org-mode journal files MCP server for LLM access.
 
 ## Overview
@@ -99,9 +101,9 @@ DEFAULT_JOURNAL_DIR = Path.home() / "Documents" / "org" / "your-journal-dir"
 
 ```bash
 # Setup dev environment
-uv sync
+uv sync --all-groups
 
-# Run tests (planned)
+# Run tests
 uv run pytest
 ```
 
