@@ -90,13 +90,58 @@ Discussed new features in today's project meeting.
 Completed PR review and merged.
 ```
 
-## Customization
+## Configuration
 
-To change default journal directory, edit `src/orgjournal_mcp/config.py`:
+### Custom Journal Directory
 
-```python
-DEFAULT_JOURNAL_DIR = Path.home() / "Documents" / "org" / "your-journal-dir"
+You can customize the journal directory using environment variables. There are two methods:
+
+#### Method 1: Using .env File (Recommended)
+
+1. Copy `.env.example` to `.env` in the project root:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` and set your journal directory:
+   ```bash
+   ORGJOURNAL_DIR=/path/to/your/journal
+   ```
+
+The `.env` file is automatically loaded when the server starts and is git-ignored for security.
+
+#### Method 2: Set Environment Variable in Claude Desktop Config
+
+Add the `env` section to your Claude Desktop configuration:
+
+```json
+{
+  "mcpServers": {
+    "orgjournal": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/path/to/orgjournal-mcp",
+        "run",
+        "python",
+        "-m",
+        "orgjournal_mcp"
+      ],
+      "env": {
+        "ORGJOURNAL_DIR": "/custom/path/to/journal"
+      }
+    }
+  }
+}
 ```
+
+**Platform-specific Examples:**
+
+- **Linux/macOS**: `ORGJOURNAL_DIR=/home/username/Documents/org/journal`
+- **Windows**: `ORGJOURNAL_DIR=C:/Users/username/Documents/org/journal`
+- **WSL**: `ORGJOURNAL_DIR=/mnt/c/Users/username/Documents/org/journal`
+
+**Default**: If not specified, defaults to `~/Documents/org/p1-journal`
 
 ## Tool Details
 

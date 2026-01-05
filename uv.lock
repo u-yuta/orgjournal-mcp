@@ -309,6 +309,7 @@ source = { editable = "." }
 dependencies = [
     { name = "mcp" },
     { name = "orgparse" },
+    { name = "python-dotenv" },
 ]
 
 [package.dev-dependencies]
@@ -322,6 +323,7 @@ dev = [
 requires-dist = [
     { name = "mcp", specifier = ">=1.1.2" },
     { name = "orgparse", specifier = ">=0.4.20251020" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
 ]
 
 [package.metadata.requires-dev]
